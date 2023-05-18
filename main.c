@@ -1,6 +1,8 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdio.h>
+#include <string.h>
 #include "lcd.h"
 
 #define BIT_SET(a, b) ((a) |= (1ULL << (b)))
@@ -14,20 +16,62 @@
 // https://wokwi.com/projects/365067824797777921
 
 
+#define BUTTON_PIN_1 0
+#define BUTTON_PIN_2 1
+#define BUTTON_PIN_3 2
+#define BUTTON_PIN_4 3
 
+char currentText[5] = {0};
+
+void HandleButtonClick(char *txt){
+    _delay_ms(200);
+    strcat(currentText, txt);
+    lcd_set_cursor(0,1);
+    // lcd_puts(currentText);
+    // return;
+
+    if(strlen(currentText)==4){
+        if(!strcmp("1442",currentText)){
+            lcd_printf("Correct welcome!");
+        }else{
+            lcd_printf("INCORRECT CODE");
+            _delay_ms(3000);
+            lcd_set_cursor(0,1);
+            lcd_puts("               ");
+            lcd_set_cursor(0,1);
+        }
+        currentText[0] = 0;
+    }else{
+          for(int i = 0;i <strlen(currentText);i++)          
+            lcd_puts("*");
+    }
+}
 int main(void)
 {
-  lcd_init();
-  lcd_enable_blinking();
-  lcd_enable_cursor();
-  lcd_puts("Skriv in koden:");
+    BIT_CLEAR(DDRB,BUTTON_PIN_1); // INPUT MODE
+    BIT_SET(PORTB,BUTTON_PIN_1); 
+    BIT_CLEAR(DDRB,BUTTON_PIN_2); // INPUT MODE
+    BIT_SET(PORTB,BUTTON_PIN_2); 
+    BIT_CLEAR(DDRB,BUTTON_PIN_3); // INPUT MODE
+    BIT_SET(PORTB,BUTTON_PIN_3); 
+    BIT_CLEAR(DDRB,BUTTON_PIN_4); // INPUT MODE
+    BIT_SET(PORTB,BUTTON_PIN_4); 
 
-    int num = 0;
-   while(1) {
-        _delay_ms(3000);
-        num++;
-        lcd_set_cursor(0,1);
-        lcd_printf("Waiting: %d", num);
-   }
-	return 0;
+
+    millis_init();
+    sei();
+
+    lcd_init();
+    lcd_enable_blinking();
+    lcd_enable_cursor();
+    
+    lcd_puts("Skriv in koden:");
+
+    while(1) {
+        if(!BIT_CHECK(PINB,BUTTON_PIN_1)) HandleButtonClick("1");
+        if(!BIT_CHECK(PINB,BUTTON_PIN_2)) HandleButtonClick("2");
+        if(!BIT_CHECK(PINB,BUTTON_PIN_3)) HandleButtonClick("3");
+        if(!BIT_CHECK(PINB,BUTTON_PIN_4)) HandleButtonClick("4");
+    }
+    return 0;
 }
