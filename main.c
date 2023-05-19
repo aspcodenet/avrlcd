@@ -10,6 +10,10 @@
 #define BIT_FLIP(a,b) ((a) ^= (1ULL<<(b)))
 #define BIT_CHECK(a,b) (!!((a) & (1ULL<<(b)))) 
 
+#define Set_Button_As_Input_Pullup(ddr,pdr,pin) BIT_CLEAR(ddr,pin);BIT_SET(pdr,pin);
+#define Button_Is_Clicked(pinr,pin) !BIT_CHECK(pinr,pin)
+
+
 // B (digital pin 8 to 13)
 // C (analog input pins)
 // D (digital pins 0 to 7)
@@ -27,8 +31,8 @@ void HandleButtonClick(char *txt){
     _delay_ms(200);
     strcat(currentText, txt);
     lcd_set_cursor(0,1);
-    // lcd_puts(currentText);
-    // return;
+     lcd_puts(currentText);
+     return;
 
     if(strlen(currentText)==4){
         if(!strcmp("1442",currentText)){
@@ -43,19 +47,16 @@ void HandleButtonClick(char *txt){
         currentText[0] = 0;
     }else{
           for(int i = 0;i <strlen(currentText);i++)          
-            lcd_puts("*");
+            lcd_puts(currentText[i]);
     }
 }
+
 int main(void)
 {
-    BIT_CLEAR(DDRB,BUTTON_PIN_1); // INPUT MODE
-    BIT_SET(PORTB,BUTTON_PIN_1); 
-    BIT_CLEAR(DDRB,BUTTON_PIN_2); // INPUT MODE
-    BIT_SET(PORTB,BUTTON_PIN_2); 
-    BIT_CLEAR(DDRB,BUTTON_PIN_3); // INPUT MODE
-    BIT_SET(PORTB,BUTTON_PIN_3); 
-    BIT_CLEAR(DDRB,BUTTON_PIN_4); // INPUT MODE
-    BIT_SET(PORTB,BUTTON_PIN_4); 
+    Set_Button_As_Input_Pullup(DDRB, PORTB, BUTTON_PIN_1);
+    Set_Button_As_Input_Pullup(DDRB, PORTB, BUTTON_PIN_2);
+    Set_Button_As_Input_Pullup(DDRB, PORTB, BUTTON_PIN_3);
+    Set_Button_As_Input_Pullup(DDRB, PORTB, BUTTON_PIN_4);
 
 
     millis_init();
@@ -64,14 +65,15 @@ int main(void)
     lcd_init();
     lcd_enable_blinking();
     lcd_enable_cursor();
+
     
     lcd_puts("Skriv in koden:");
 
     while(1) {
-        if(!BIT_CHECK(PINB,BUTTON_PIN_1)) HandleButtonClick("1");
-        if(!BIT_CHECK(PINB,BUTTON_PIN_2)) HandleButtonClick("2");
-        if(!BIT_CHECK(PINB,BUTTON_PIN_3)) HandleButtonClick("3");
-        if(!BIT_CHECK(PINB,BUTTON_PIN_4)) HandleButtonClick("4");
+        if(Button_Is_Clicked(PINB,BUTTON_PIN_1)) HandleButtonClick("1");
+        if(Button_Is_Clicked(PINB,BUTTON_PIN_2)) HandleButtonClick("2");
+        if(Button_Is_Clicked(PINB,BUTTON_PIN_3)) HandleButtonClick("3");
+        if(Button_Is_Clicked(PINB,BUTTON_PIN_4)) HandleButtonClick("4");
     }
     return 0;
 }
